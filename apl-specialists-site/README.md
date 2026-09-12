@@ -40,3 +40,13 @@ Este sitio está protegido con **StatiCrypt** (cifrado del lado del cliente, sin
 - Al abrir cualquier página se pedirá la contraseña; el visitante puede marcar "Recordarme en este navegador" para no volver a escribirla en ese mismo navegador.
 - Esto es una protección disuasoria (evita que buscadores, curiosos o quien tenga el link por error vean el contenido), no una autenticación de servidor real: el HTML cifrado sigue siendo público en el repositorio, así que alguien muy decidido con conocimientos técnicos podría intentar forzar la contraseña sin conexión. Para un repo público interno esto es razonable; si se necesita algo más robusto, la alternativa sería Cloudflare Access.
 - Para cambiar la contraseña en el futuro habría que volver a cifrar todos los archivos con StatiCrypt (avísame si llegas a necesitarlo).
+
+## Imágenes de Explore Playgrounds
+
+Las 22 tarjetas ya tienen su imagen original en `assets/pg/<slug>.jpg`.
+
+## Bases de Airtable incrustadas
+
+Las dos secciones de "Seguimiento a Colegios" (la base a la derecha de Bitácora de Sesiones y la de
+Fichas Técnicas) usan el mismo embed de Airtable (`shrZXP9a02ABu92nm`), y el enlace de texto
+"Formulario de Bitácora" apunta al formulario (`pag1q0Dg9b4gTimMy/form`), tal como lo confirmaste.

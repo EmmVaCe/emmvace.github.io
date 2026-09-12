@@ -269,6 +269,26 @@ main.page.home h1.title { font-size: 32px; }
 .card:hover { border-color: rgba(255,255,255,0.2); }
 .card .card-title { font-weight: 600; margin-bottom: 6px; }
 .card .card-desc { color: var(--text-secondary); font-size: 14px; margin-bottom: 10px; min-height: 34px; }
+.card-thumb {
+  width: 100%;
+  aspect-ratio: 16/10;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+}
+.card-thumb-placeholder {
+  width: 100%;
+  aspect-ratio: 16/10;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #2a2a2a, #1f1f1f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  border: 1px solid var(--border);
+}
 .get-btn {
   display: inline-flex;
   align-items: center;
@@ -300,6 +320,18 @@ main.page.home h1.title { font-size: 32px; }
   font-size: 48px;
   border: 1px solid var(--border);
 }
+.pg-cover {
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 16/10;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+/* ---------- Airtable embeds ---------- */
+.airtable-embed-wrap { margin: 12px 0 24px; }
+.airtable-embed { display: block; max-width: 100%; }
 .pg-level {
   color: var(--text-tertiary);
   font-size: 14px;
