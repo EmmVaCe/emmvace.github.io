@@ -47,6 +47,14 @@ Las 22 tarjetas ya tienen su imagen original en `assets/pg/<slug>.jpg`.
 
 ## Bases de Airtable incrustadas
 
-Las dos secciones de "Seguimiento a Colegios" (la base a la derecha de Bitácora de Sesiones y la de
-Fichas Técnicas) usan el mismo embed de Airtable (`shrZXP9a02ABu92nm`), y el enlace de texto
-"Formulario de Bitácora" apunta al formulario (`pag1q0Dg9b4gTimMy/form`), tal como lo confirmaste.
+Las dos secciones de "Seguimiento a Colegios" usan el embed de Airtable (`shrZXP9a02ABu92nm`), y el
+enlace de texto "Formulario de Bitácora" apunta al formulario (`pag1q0Dg9b4gTimMy/form`).
+
+## Ventana emergente en Explore Playgrounds
+
+Al hacer clic en cualquier tarjeta de "Explore Playgrounds" ahora se abre una ventana emergente (peek)
+con la imagen, descripción y botón GET, igual que en la página original de Notion, en vez de navegar a
+una página nueva. Se puede cerrar con la X, con Escape, o haciendo clic fuera del recuadro. Cada tarjeta
+también sigue teniendo su página completa en `playgrounds/<slug>.html` por si alguien quiere compartir
+o abrir el link directo de una app en particular (el link "Abrir como página completa" dentro de la
+ventana emergente lleva ahí).
