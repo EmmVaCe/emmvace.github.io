@@ -31,3 +31,12 @@ No requiere build ni dependencias: son archivos estáticos.
   fichas técnicas) no se replican por ser contenido privado y dinámico; se dejó una nota en su lugar.
 - Los enlaces externos (Box, sensei.s.gy, Airtable, Apple, etc.) apuntan a las URLs reales del sitio
   original.
+
+## Protección con contraseña
+
+Este sitio está protegido con **StatiCrypt** (cifrado del lado del cliente, sin necesidad de servidor).
+
+- Contraseña: `Th1nk_D1ff3r3nt!`
+- Al abrir cualquier página se pedirá la contraseña; el visitante puede marcar "Recordarme en este navegador" para no volver a escribirla en ese mismo navegador.
+- Esto es una protección disuasoria (evita que buscadores, curiosos o quien tenga el link por error vean el contenido), no una autenticación de servidor real: el HTML cifrado sigue siendo público en el repositorio, así que alguien muy decidido con conocimientos técnicos podría intentar forzar la contraseña sin conexión. Para un repo público interno esto es razonable; si se necesita algo más robusto, la alternativa sería Cloudflare Access.
+- Para cambiar la contraseña en el futuro habría que volver a cifrar todos los archivos con StatiCrypt (avísame si llegas a necesitarlo).
