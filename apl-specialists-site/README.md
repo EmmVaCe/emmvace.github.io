@@ -52,9 +52,9 @@ enlace de texto "Formulario de Bitácora" apunta al formulario (`pag1q0Dg9b4gTim
 
 ## Ventana emergente en Explore Playgrounds
 
-Al hacer clic en cualquier tarjeta de "Explore Playgrounds" ahora se abre una ventana emergente (peek)
-con la imagen, descripción y botón GET, igual que en la página original de Notion, en vez de navegar a
-una página nueva. Se puede cerrar con la X, con Escape, o haciendo clic fuera del recuadro. Cada tarjeta
-también sigue teniendo su página completa en `playgrounds/<slug>.html` por si alguien quiere compartir
-o abrir el link directo de una app en particular (el link "Abrir como página completa" dentro de la
-ventana emergente lleva ahí).
+Al hacer clic en cualquier tarjeta de "Explore Playgrounds" se abre una ventana emergente (peek) con la
+imagen, descripción y botón GET, en vez de navegar a una página nueva. Se puede cerrar con la X, con
+Escape, o haciendo clic fuera del recuadro. El código usa un solo listener de clic delegado en toda la
+página (en vez de uno por tarjeta) para que sea más robusto entre navegadores. Cada tarjeta también
+sigue teniendo su página completa en `playgrounds/<slug>.html` (link "Abrir como página completa" dentro
+de la ventana emergente).
