@@ -37,18 +37,13 @@ No requiere build ni dependencias: son archivos estáticos.
 Este sitio está protegido con **StatiCrypt** (cifrado del lado del cliente, sin necesidad de servidor).
 
 - Contraseña: `Th1nk_D1ff3r3nt!`
-- Al abrir cualquier página protegida se pedirá la contraseña; el visitante puede marcar "Recordarme en
-  este navegador" para no volver a escribirla en ese mismo navegador.
 - **Páginas públicas (sin contraseña):** `index.html`, `bienvenida.html`, `explore-playgrounds.html`.
-- **Páginas protegidas:** el resto de las secciones (`sensei-learning.html`, `primeros-pasos.html`,
-  `prepara-tu-sesion.html`, `durante-la-capacitacion.html`, `seguimiento-a-colegios.html`) y las 22
-  páginas individuales dentro de `playgrounds/`.
+- **Páginas protegidas:** el resto de las secciones y las 22 páginas dentro de `playgrounds/`.
 - Esto es una protección disuasoria (evita que buscadores, curiosos o quien tenga el link por error vean
   el contenido), no una autenticación de servidor real: el HTML cifrado sigue siendo público en el
   repositorio, así que alguien muy decidido con conocimientos técnicos podría intentar forzar la
   contraseña sin conexión. Para un repo público interno esto es razonable; si se necesita algo más
   robusto, la alternativa sería Cloudflare Access.
-- Para cambiar qué páginas están protegidas o la contraseña en el futuro, avísame.
 
 ## Imágenes de Explore Playgrounds
 
@@ -59,10 +54,8 @@ Las 22 tarjetas tienen su imagen original en `assets/pg/<slug>.jpg`.
 Las dos secciones de "Seguimiento a Colegios" usan el embed de Airtable (`shrZXP9a02ABu92nm`), y el
 enlace de texto "Formulario de Bitácora" apunta al formulario (`pag1q0Dg9b4gTimMy/form`).
 
-## Ventana emergente en Explore Playgrounds
+## Ventana emergente y botones GET en Explore Playgrounds
 
-Al hacer clic en cualquier tarjeta de "Explore Playgrounds" se abre una ventana emergente (peek) con la
-imagen, descripción y botón GET, en vez de navegar a una página nueva. Se puede cerrar con la X, con
-Escape, o haciendo clic fuera del recuadro. Cada tarjeta también sigue teniendo su página completa en
-`playgrounds/<slug>.html` (protegida con contraseña), enlazada desde "Abrir como página completa" dentro
-de la ventana emergente.
+Al hacer clic en cualquier tarjeta se abre una ventana emergente (peek) con la imagen, descripción y
+botón GET. El botón GET (en la tarjeta, en la ventana emergente y en cada página completa dentro de
+`playgrounds/`) descarga el .zip correspondiente desde Box en una pestaña nueva.
