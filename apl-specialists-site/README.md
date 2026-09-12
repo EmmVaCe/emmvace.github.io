@@ -39,11 +39,8 @@ Este sitio está protegido con **StatiCrypt** (cifrado del lado del cliente, sin
 - Contraseña: `Th1nk_D1ff3r3nt!`
 - **Páginas públicas (sin contraseña):** `index.html`, `bienvenida.html`, `explore-playgrounds.html`.
 - **Páginas protegidas:** el resto de las secciones y las 22 páginas dentro de `playgrounds/`.
-- Esto es una protección disuasoria (evita que buscadores, curiosos o quien tenga el link por error vean
-  el contenido), no una autenticación de servidor real: el HTML cifrado sigue siendo público en el
-  repositorio, así que alguien muy decidido con conocimientos técnicos podría intentar forzar la
-  contraseña sin conexión. Para un repo público interno esto es razonable; si se necesita algo más
-  robusto, la alternativa sería Cloudflare Access.
+- Protección disuasoria (evita buscadores, curiosos o quien tenga el link por error), no autenticación
+  de servidor real: el HTML cifrado sigue siendo público en el repositorio.
 
 ## Imágenes de Explore Playgrounds
 
@@ -57,5 +54,6 @@ enlace de texto "Formulario de Bitácora" apunta al formulario (`pag1q0Dg9b4gTim
 ## Ventana emergente y botones GET en Explore Playgrounds
 
 Al hacer clic en cualquier tarjeta se abre una ventana emergente (peek) con la imagen, descripción y
-botón GET. El botón GET (en la tarjeta, en la ventana emergente y en cada página completa dentro de
-`playgrounds/`) descarga el .zip correspondiente desde Box en una pestaña nueva.
+botón GET, que descarga el .zip correspondiente desde Box en una pestaña nueva. Las descripciones de
+Affirmations, Self Portrait y Say It también incluyen enlaces a los recursos de Apple Education / Box
+mencionados en el texto.
