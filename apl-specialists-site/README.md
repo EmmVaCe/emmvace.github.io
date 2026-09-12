@@ -37,8 +37,10 @@ No requiere build ni dependencias: son archivos estáticos.
 Este sitio está protegido con **StatiCrypt** (cifrado del lado del cliente, sin necesidad de servidor).
 
 - Contraseña: `Th1nk_D1ff3r3nt!`
-- **Páginas públicas (sin contraseña):** `index.html`, `bienvenida.html`, `explore-playgrounds.html`.
-- **Páginas protegidas:** el resto de las secciones y las 22 páginas dentro de `playgrounds/`.
+- **Páginas públicas (sin contraseña):** `index.html`, `bienvenida.html`, `explore-playgrounds.html`, y
+  las 22 páginas individuales dentro de `playgrounds/`.
+- **Páginas protegidas:** `sensei-learning.html`, `primeros-pasos.html`, `prepara-tu-sesion.html`,
+  `durante-la-capacitacion.html`, `seguimiento-a-colegios.html`.
 - Protección disuasoria (evita buscadores, curiosos o quien tenga el link por error), no autenticación
   de servidor real: el HTML cifrado sigue siendo público en el repositorio.
 
