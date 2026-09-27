@@ -1,3 +1,5 @@
 # Emmanuel Valdés Cetina
-##  Professional Learning Specialist
-emmanuel@exa.com.mx 
+
+#####  Professional Learning Specialist
+
+emmanuel@exa.com.mx
