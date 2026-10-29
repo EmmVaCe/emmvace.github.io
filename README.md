@@ -8,5 +8,6 @@ emmanuel@exa.com.mx
 >
 > - [APLS Specialists](https://emmvace.github.io/apls/)
 > - [Explore Playgrounds](https://emmvace.github.io/explore-playgrounds.html)
+> - [MacBook Neo vs Chromebook](https://emmvace.github.io/neo)
 >
 >  **Sensei Learning** developing education *by developing educators*.
