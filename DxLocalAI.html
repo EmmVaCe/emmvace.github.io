@@ -761,7 +761,8 @@ function prepararReporte(){
 const TITULO=document.title;
 document.getElementById('pdf').addEventListener('click',()=>{
   prepararReporte();
-  if(estado['d-nombre']) document.title='Diagnóstico IA local · '+estado['d-nombre'];
+  const colegio=String(estado['d-nombre']||'').replace(/[\/\\:*?"<>|#%{}~&]/g,' ').replace(/\s+/g,' ').trim().slice(0,80);
+  document.title=colegio?'Dx IA Local - '+colegio:'Dx IA Local';
   document.body.classList.add('reporte');
   window.print();
 });
