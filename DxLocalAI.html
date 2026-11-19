@@ -181,8 +181,37 @@ footer .nota{color:var(--gris-medio)}
   .datos,.res-top,.matriz-wrap,.columnas{grid-template-columns:1fr}
   .preg{grid-template-columns:40px 1fr}.preg .nivel{grid-column:2;width:100%}
 }
+/* Enviar a exa y reporte PDF */
+.enviar{margin-top:28px;background:var(--gris-claro);border-radius:var(--radius-lg);padding:22px 24px}
+.enviar h3{font-size:20px;font-weight:600}
+.enviar .nota{margin:6px 0 14px}
+.enviar .campo{max-width:420px}
+.enviar input[type=email]{font:inherit;font-size:14.5px;color:var(--tinta);border:1px solid var(--linea);border-radius:var(--radius-md);padding:10px 12px;background:#fff;width:100%}
+.enviar input[type=email]:focus{outline:2px solid var(--azul-medio);outline-offset:1px;border-color:transparent}
+.consent{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:13.5px;color:var(--texto);max-width:640px}
+.consent input{margin-top:4px}
+.trampa{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.btn:disabled{opacity:.55;cursor:wait}
+.aviso.ok{color:#0B7A55;font-weight:500}.aviso.error{color:#B42318;font-weight:500}
+.solo-reporte{display:none}
+.rep-datos{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 24px;margin:8px 0 0;font-size:13px}
+.rep-datos dt{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gris-medio)}
+.rep-datos dd{margin:2px 0 0;color:var(--tinta)}
+.rep-resp{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:10px}
+.rep-resp td{border-bottom:1px solid var(--linea);padding:5px 6px;vertical-align:top}
+.rep-resp td.n{width:38px;font-family:var(--font-mono);color:var(--gris-medio)}
+.rep-resp td.v{width:28px;text-align:center;font-weight:600;color:var(--azul-exa)}
+.rep-resp tr.sec td{font-family:var(--font-display);font-weight:600;color:var(--tinta);padding-top:12px;border-bottom:1px solid var(--azul-medio)}
 @media print{
-  .nav,.acciones{display:none}
+  body.reporte #inicio, body.reporte #secciones, body.reporte #esenciales, body.reporte #fuentes,
+  body.reporte #resultados > .nota, body.reporte #resultados > .cuerpo-lg{display:none !important}
+  body.reporte .solo-reporte{display:block}
+  body.reporte section.bloque{break-inside:auto}
+  body.reporte .rep-resp tr{break-inside:avoid}
+  @page{margin:14mm}
+}
+@media print{
+  .nav,.acciones,.enviar{display:none}
   section.bloque{break-inside:avoid-page}
   .preg{break-inside:avoid}
   body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -250,6 +279,7 @@ footer .nota{color:var(--gris-medio)}
   <section class="bloque" id="resultados">
     <p class="etiqueta"><b>07</b> / Resultados</p>
     <h2 class="titulo-seccion">Dónde está tu colegio y por dónde empezar</h2>
+    <div class="solo-reporte"><dl class="rep-datos" id="rep-datos"></dl></div>
     <p class="cuerpo-lg">El puntaje total indica la etapa del colegio. Cruzar la preparación técnica con la pedagógica indica por dónde empezar. La sección con el porcentaje más bajo es la primera prioridad, aunque el total sea alto.</p>
 
     <div class="res-top">
@@ -324,12 +354,29 @@ footer .nota{color:var(--gris-medio)}
       <tbody id="r-etapas"></tbody>
     </table>
 
+    <div class="enviar" id="enviar-bloque">
+      <h3>Enviar resultados a exa</h3>
+      <p class="nota">Un consultor de exa revisará el diagnóstico y te escribirá para comentar los siguientes pasos.</p>
+      <label class="campo">Correo de contacto<input type="email" id="env-correo" autocomplete="email" placeholder="nombre@colegio.edu.mx"></label>
+      <label class="consent"><input type="checkbox" id="env-ok"> <span>Acepto que exa reciba estas respuestas, el nombre del colegio y mi correo para dar seguimiento a este diagnóstico.</span></label>
+      <input type="text" id="env-trampa" class="trampa" tabindex="-1" autocomplete="off" aria-hidden="true">
+    </div>
+
     <div class="acciones">
-      <button class="btn" id="copiar" type="button">Copiar resumen de resultados</button>
+      <button class="btn" id="enviar" type="button">Enviar a exa</button>
+      <button class="btn sec" id="pdf" type="button">Descargar PDF</button>
+      <button class="btn sec" id="copiar" type="button">Copiar resumen</button>
       <button class="btn sec" id="borrar" type="button">Borrar respuestas</button>
       <span class="aviso" id="aviso" role="status"></span>
     </div>
-    <p class="nota" style="margin-top:12px">Las respuestas se guardan solo en este navegador. Para compartirlas con exa, copia el resumen y pégalo en un correo.</p>
+    <p class="nota" style="margin-top:12px">Las respuestas se guardan en este navegador y solo se envían a exa si presionas «Enviar a exa». Para el PDF, elige «Guardar como PDF» en la ventana de impresión.</p>
+
+    <div class="solo-reporte">
+      <h3 class="subtit">Respuestas por pregunta</h3>
+      <p class="nota">0 = No existe · 1 = Lo platicamos · 2 = Existe en parte · 3 = Existe en todo el colegio</p>
+      <table class="rep-resp"><tbody id="rep-resp"></tbody></table>
+      <div id="rep-ctx"></div>
+    </div>
   </section>
 
   <section class="bloque" id="esenciales">
@@ -628,14 +675,71 @@ document.addEventListener('input',ev=>{
   if(el.dataset.k && (el.tagName==='TEXTAREA'||el.type==='text'||el.type==='number')){estado[el.dataset.k]=el.value;guardar();}
 });
 const aviso=document.getElementById('aviso');
+function avisar(t,tipo){aviso.textContent=t;aviso.className='aviso'+(tipo?' '+tipo:'');}
 document.getElementById('copiar').addEventListener('click',async()=>{
-  try{await navigator.clipboard.writeText(resumen());aviso.textContent='Resumen copiado. Pégalo en un correo para compartirlo.';}
-  catch(e){aviso.textContent='No se pudo copiar automáticamente en este navegador.';}
+  try{await navigator.clipboard.writeText(resumen());avisar('Resumen copiado.');}
+  catch(e){avisar('No se pudo copiar automáticamente en este navegador.','error');}
 });
+
+/* Enviar a exa: guarda el diagnóstico en Airtable a través de la función de Vercel */
+const API=/\.vercel\.app$/.test(location.hostname)?'/api/enviar':'https://sensei-learning.vercel.app/api/enviar';
+const btnEnviar=document.getElementById('enviar');
+document.getElementById('enviar').addEventListener('click',async()=>{
+  const r=calcular();
+  const correo=document.getElementById('env-correo').value.trim();
+  if(!(estado['d-nombre']||'').trim()){avisar('Escribe el nombre del colegio en «Datos generales» (sección 00).','error');document.querySelector('[data-k="d-nombre"]').focus();return;}
+  if(r.resp===0){avisar('Responde al menos una pregunta antes de enviar.','error');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){avisar('Escribe un correo de contacto válido.','error');document.getElementById('env-correo').focus();return;}
+  if(!document.getElementById('env-ok').checked){avisar('Marca la casilla de consentimiento para enviar.','error');return;}
+  const datos={
+    colegio:estado['d-nombre'],niveles:estado['d-niveles']||'',alumnos:estado['d-alumnos']||'',docentes:estado['d-docentes']||'',
+    personas:estado['d-personas']||'',fecha:estado['d-fecha']||'',correo,consentimiento:true,
+    trampa:document.getElementById('env-trampa').value,
+    total:r.total,respondidas:r.resp,etapa:r.e.nombre,cuadrante:r.c.n,tecnica:r.pt,pedagogica:r.pp,
+    prioridad:r.peor?`${r.peor.s.n} ${r.peor.s.titulo} (${r.peor.pct}%)`:'',
+    secciones:r.res.map(x=>x.sub),resumen:resumen(),respuestas:estado
+  };
+  btnEnviar.disabled=true;avisar('Enviando…');
+  try{
+    const resp=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(datos)});
+    const j=await resp.json().catch(()=>({}));
+    if(resp.ok&&j.ok){avisar('¡Listo! exa recibió el diagnóstico. Te escribiremos a '+correo+'.','ok');}
+    else avisar(j.error||'No se pudo enviar. Intenta de nuevo en unos minutos.','error');
+  }catch(e){avisar('No se pudo enviar. Revisa tu conexión e intenta de nuevo.','error');}
+  btnEnviar.disabled=false;
+});
+
+/* Descargar PDF: arma un reporte compacto y abre la ventana de impresión */
+function prepararReporte(){
+  const r=calcular();
+  const campos=[['Colegio','d-nombre'],['Niveles','d-niveles'],['Fecha','d-fecha'],['Alumnos','d-alumnos'],['Docentes','d-docentes'],['Responden','d-personas']];
+  document.getElementById('rep-datos').innerHTML=campos.map(([t,k])=>`<div><dt>${t}</dt><dd>${esc(String(estado[k]||'—'))}</dd></div>`).join('');
+  let filas='';
+  SECCIONES.forEach((s,si)=>{
+    filas+=`<tr class="sec"><td colspan="3">${s.n} ${s.titulo} · ${r.res[si].sub} / ${r.res[si].max}</td></tr>`;
+    s.preguntas.forEach((p,i)=>{const v=estado[`${s.id}-${i+1}`];filas+=`<tr><td class="n">${s.n.replace(/^0/,'')}.${i+1}</td><td class="v">${v===undefined?'–':v}</td><td>${p[0]}</td></tr>`;});
+  });
+  document.getElementById('rep-resp').innerHTML=filas;
+  const ctx=[];
+  SECCIONES.forEach(s=>(s.contexto||[]).forEach((c,j)=>{
+    const k=`${s.id}-c${j+1}`;
+    const v=c.tipo==='check'?c.ops.filter((o,m)=>estado[`${k}-${m}`]).join(', '):(estado[k]||'');
+    if(v) ctx.push(`<tr><td colspan="2" style="width:45%">${c.q}</td><td>${esc(String(v))}</td></tr>`);
+  }));
+  document.getElementById('rep-ctx').innerHTML=ctx.length?`<h3 class="subtit">Contexto</h3><table class="rep-resp"><tbody>${ctx.join('')}</tbody></table>`:'';
+}
+const TITULO=document.title;
+document.getElementById('pdf').addEventListener('click',()=>{
+  prepararReporte();
+  if(estado['d-nombre']) document.title='Diagnóstico IA local · '+estado['d-nombre'];
+  document.body.classList.add('reporte');
+  window.print();
+});
+window.addEventListener('afterprint',()=>{document.body.classList.remove('reporte');document.title=TITULO;});
 let confirmar=false;
 document.getElementById('borrar').addEventListener('click',ev=>{
-  if(!confirmar){confirmar=true;ev.target.textContent='Confirmar: borrar todo';aviso.textContent='Vuelve a hacer clic para borrar todas las respuestas.';setTimeout(()=>{confirmar=false;ev.target.textContent='Borrar respuestas';},4000);return;}
-  estado={};guardar();render();restaurar();calcular();confirmar=false;ev.target.textContent='Borrar respuestas';aviso.textContent='Respuestas borradas.';
+  if(!confirmar){confirmar=true;ev.target.textContent='Confirmar: borrar todo';avisar('Vuelve a hacer clic para borrar todas las respuestas.');setTimeout(()=>{confirmar=false;ev.target.textContent='Borrar respuestas';},4000);return;}
+  estado={};guardar();render();restaurar();calcular();confirmar=false;ev.target.textContent='Borrar respuestas';avisar('Respuestas borradas.');
 });
 </script>
 </body>
