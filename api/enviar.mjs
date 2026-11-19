@@ -3,6 +3,7 @@
 import { marcarEnviada } from './sesion.mjs';
 const BASE = 'appxEkTzPxt0VGzMD';
 const TABLA = 'tblo5a4hb3rzQl1Wg';
+const CAMPO_PDF = 'fldoXtLvXVMqgwXpi'; // Reporte PDF
 const ORIGENES = [
   'https://sensei-learning.vercel.app',
   'https://emmvace-github-io.vercel.app',
@@ -38,7 +39,7 @@ export async function POST(request) {
   if (!process.env.AIRTABLE_TOKEN) return json({ ok: false, error: 'Servicio no configurado.' }, 500, h);
 
   const crudo = await request.text();
-  if (crudo.length > 60000) return json({ ok: false, error: 'Envío demasiado grande.' }, 413, h);
+  if (crudo.length > 4400000) return json({ ok: false, error: 'Envío demasiado grande.' }, 413, h);
   let d;
   try { d = JSON.parse(crudo); } catch { return json({ ok: false, error: 'Datos inválidos.' }, 400, h); }
 
@@ -53,7 +54,6 @@ export async function POST(request) {
 
   const campos = {
     'Colegio': colegio,
-    'Recibido': new Date().toISOString(),
     'Correo de contacto': correo,
     'Personas que responden': texto(d.personas, 1000),
     'Niveles': texto(d.niveles, 200),
@@ -64,7 +64,6 @@ export async function POST(request) {
     'Primera prioridad': texto(d.prioridad, 200),
     'Resumen': texto(d.resumen, 20000),
     'Respuestas (JSON)': JSON.stringify(d.respuestas ?? {}).slice(0, 30000),
-    'Seguimiento': 'Nuevo',
   };
   const alumnos = entero(d.alumnos, 0, 1e6), docentes = entero(d.docentes, 0, 1e5);
   if (alumnos !== null && texto(String(d.alumnos ?? ''))) campos['Alumnos'] = alumnos;
@@ -78,31 +77,74 @@ export async function POST(request) {
   });
   for (const k of Object.keys(campos)) if (campos[k] === null || campos[k] === '') delete campos[k];
 
-  const r = await fetch(`https://api.airtable.com/v0/${BASE}/${TABLA}`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${process.env.AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ records: [{ fields: campos }] }),
-  });
+  // Un envío por diagnóstico: si la clave ya existe, se actualiza ese registro
+  const clave = /^[sn]-[a-z0-9]{20}$/.test(d.clave || '') ? d.clave : '';
+  const ahora = new Date().toISOString();
+  let previo = null;
+  if (clave) {
+    try {
+      const f = encodeURIComponent(`{Clave de envío}='${clave}'`);
+      const b = await at(`?maxRecords=1&filterByFormula=${f}`);
+      if (b.ok) previo = (await b.json()).records?.[0] || null;
+    } catch (e) { console.error('Buscar clave', e); }
+  }
+  let r;
+  if (previo) {
+    r = await at(`/${previo.id}`, { method: 'PATCH', body: JSON.stringify({ fields: {
+      ...campos, 'Actualizado': ahora, 'Envíos': (previo.fields['Envíos'] || 1) + 1, 'Reporte PDF': d.pdf ? [] : undefined,
+    } }) });
+  } else {
+    r = await at('', { method: 'POST', body: JSON.stringify({ records: [{ fields: {
+      ...campos, 'Recibido': ahora, 'Seguimiento': 'Nuevo', 'Envíos': 1, ...(clave ? { 'Clave de envío': clave } : {}),
+    } }] }) });
+  }
   if (!r.ok) {
     console.error('Airtable', r.status, await r.text());
     return json({ ok: false, error: 'No se pudo guardar. Intenta de nuevo en unos minutos.' }, 502, h);
   }
   const guardado = await r.json().catch(() => ({}));
-  const id = guardado.records?.[0]?.id;
-  try { await avisarTelegram(campos, id); } catch (e) { console.error('Telegram', e); }
+  const id = previo ? previo.id : guardado.records?.[0]?.id;
+
+  // Adjuntar el PDF al registro
+  let pdf = false;
+  if (id && typeof d.pdf === 'string' && d.pdf.startsWith('JVBER') && d.pdf.length < 4300000) {
+    try {
+      const nombre = (texto(d.pdfNombre, 120) || 'Dx IA Local.pdf').replace(/[^\p{L}\p{N} ._-]/gu, '');
+      const u = await fetch(`https://content.airtable.com/v0/${BASE}/${id}/${CAMPO_PDF}/uploadAttachment`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${process.env.AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contentType: 'application/pdf', file: d.pdf, filename: nombre.endsWith('.pdf') ? nombre : nombre + '.pdf' }),
+      });
+      pdf = u.ok;
+      if (!u.ok) console.error('PDF', u.status, await u.text());
+    } catch (e) { console.error('PDF', e); }
+  }
+
+  try { await avisarTelegram(campos, id, previo); } catch (e) { console.error('Telegram', e); }
   if (typeof d.sesion === 'string' && d.sesion) {
     try { await marcarEnviada(d.sesion, id); } catch (e) { console.error('Sesión', e); }
   }
-  return json({ ok: true }, 200, h);
+  return json({ ok: true, actualizado: !!previo, pdf }, 200, h);
 }
+
+const at = (ruta, opciones = {}) => fetch(`https://api.airtable.com/v0/${BASE}/${TABLA}${ruta}`, {
+  ...opciones, headers: { Authorization: `Bearer ${process.env.AIRTABLE_TOKEN}`, 'Content-Type': 'application/json' },
+});
 
 // Aviso al grupo de Telegram. Variables: TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID (si faltan, no se envía).
 const html = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-async function avisarTelegram(c, id) {
+async function avisarTelegram(c, id, previo) {
   const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_CHAT_ID;
   if (!token || !chat) return;
   const enlace = id ? `https://airtable.com/${BASE}/${TABLA}/${id}` : `https://airtable.com/${BASE}/${TABLA}`;
-  const lineas = [
+  const antes = previo?.fields?.['Puntaje total'];
+  const lineas = previo ? [
+    `🔄 <b>Diagnóstico actualizado</b>`,
+    `<b>${html(c['Colegio'])}</b>`,
+    '',
+    `• <b>Puntaje:</b> ${antes != null && antes !== c['Puntaje total'] ? `${antes} → ` : ''}${c['Puntaje total'] ?? '–'} / 108 (${c['Preguntas respondidas']} de 36 preguntas)`,
+    `• <b>Etapa:</b> ${html(c['Etapa'] || '–')}`,
+  ] : [
     `🏫 <b>Nuevo diagnóstico de IA local</b>`,
     `<b>${html(c['Colegio'])}</b>`,
     '',
@@ -112,7 +154,7 @@ async function avisarTelegram(c, id) {
     `• <b>Primera prioridad:</b> ${html(c['Primera prioridad'] || '–')}`,
     `• <b>Contacto:</b> ${html(c['Correo de contacto'])}`,
   ];
-  if (c['Personas que responden']) lineas.push(`• <b>Responden:</b> ${html(c['Personas que responden'])}`);
+  if (!previo && c['Personas que responden']) lineas.push(`• <b>Responden:</b> ${html(c['Personas que responden'])}`);
   lineas.push('', `<a href="${enlace}">Ver en Airtable</a>`);
   const t = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',

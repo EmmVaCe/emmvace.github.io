@@ -207,6 +207,18 @@ body.pasos:not([data-paso="inicio"]) .portada{display:none}
 #equipo-estado{display:block;margin-top:10px;min-height:1em}
 .sync-nav{flex:none;font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--gris-medio);padding:6px 4px;white-space:nowrap}
 .sync-nav.error{color:#B42318}
+/* Enlace «Solo descargar PDF» y hoja para generar el PDF */
+.solo-pdf{margin:10px 0 0;font-size:13px;color:var(--gris-medio)}
+.enlace{font:inherit;font-size:13.5px;background:none;border:0;padding:0;color:var(--azul-medio);text-decoration:underline;cursor:pointer}
+.enlace:disabled{opacity:.55;cursor:wait}
+.pdf-hoja{width:760px;padding:0 24px 8px;background:#fff}
+.pdf-hoja .portada{display:block !important}
+.pdf-hoja .portada .lead,.pdf-hoja .portada .meta{display:none}
+.pdf-hoja .portada h1{font-size:40px;margin-top:20px}
+.pdf-hoja .solo-reporte{display:block}
+.pdf-hoja .enviar,.pdf-hoja .acciones,.pdf-hoja .solo-pdf,.pdf-hoja .bloque > .nota,.pdf-hoja .bloque > .cuerpo-lg{display:none !important}
+.pdf-hoja section.bloque{display:block;padding-top:24px;margin-top:0}
+.pdf-hoja .res-top,.pdf-hoja .matriz-wrap{grid-template-columns:1fr 1fr}
 /* Enviar a exa y reporte PDF */
 .enviar{margin-top:28px;background:var(--gris-claro);border-radius:var(--radius-lg);padding:22px 24px}
 .enviar h3{font-size:20px;font-weight:600}
@@ -401,20 +413,20 @@ body.pasos:not([data-paso="inicio"]) .portada{display:none}
     </table>
 
     <div class="enviar" id="enviar-bloque">
-      <h3>Enviar resultados a exa</h3>
-      <p class="nota">Un consultor de exa revisará el diagnóstico y te escribirá para comentar los siguientes pasos.</p>
+      <h3>Generar y enviar reporte</h3>
+      <p class="nota">Descargarás tu reporte en PDF y lo enviaremos a exa. Un consultor lo revisará y te escribirá para comentar los siguientes pasos.</p>
       <label class="campo">Correo de contacto<input type="email" id="env-correo" autocomplete="email" placeholder="nombre@colegio.edu.mx"></label>
-      <label class="consent"><input type="checkbox" id="env-ok"> <span>Acepto que exa reciba estas respuestas, el nombre del colegio y mi correo para dar seguimiento a este diagnóstico, conforme a su <a href="https://exa.s.gy/AvisoPrivacidad" target="_blank" rel="noopener">aviso de privacidad</a>.</span></label>
+      <label class="consent"><input type="checkbox" id="env-ok"> <span>Acepto que exa reciba estas respuestas, el reporte en PDF, el nombre del colegio y mi correo para dar seguimiento a este diagnóstico, conforme a su <a href="https://exa.s.gy/AvisoPrivacidad" target="_blank" rel="noopener">aviso de privacidad</a>.</span></label>
       <input type="text" id="env-trampa" class="trampa" tabindex="-1" autocomplete="off" aria-hidden="true">
     </div>
 
     <div class="acciones">
-      <button class="btn" id="enviar" type="button">Enviar a exa</button>
-      <button class="btn sec" id="pdf" type="button">Descargar PDF</button>
+      <button class="btn" id="enviar" type="button">Generar y enviar reporte</button>
       <button class="btn sec" id="borrar" type="button">Borrar respuestas</button>
       <span class="aviso" id="aviso" role="status"></span>
     </div>
-    <p class="nota" style="margin-top:12px">Las respuestas se guardan en este navegador (y en exa, si creaste un enlace para tu equipo) y solo se envían como diagnóstico a exa si presionas «Enviar a exa» (consulta el <a href="https://exa.s.gy/AvisoPrivacidad" target="_blank" rel="noopener">aviso de privacidad</a>). Para el PDF, elige «Guardar como PDF» en la ventana de impresión.</p>
+    <p class="solo-pdf"><button class="enlace" id="pdf" type="button">Solo descargar PDF</button> <span>· sin enviarlo a exa</span></p>
+    <p class="nota" style="margin-top:12px">Las respuestas se guardan en este navegador (y en exa, si creaste un enlace para tu equipo) y solo se envían como diagnóstico a exa si presionas «Generar y enviar reporte» (consulta el <a href="https://exa.s.gy/AvisoPrivacidad" target="_blank" rel="noopener">aviso de privacidad</a>).</p>
 
     <div class="solo-reporte">
       <h3 class="subtit">Respuestas por pregunta</h3>
@@ -717,14 +729,23 @@ document.addEventListener('input',ev=>{
 const aviso=document.getElementById('aviso');
 function avisar(t,tipo){aviso.textContent=t;aviso.className='aviso'+(tipo?' '+tipo:'');}
 const CORREO_RESPALDO='aplspecialist@exa.com.mx';
+var pdfListo=false;
 function avisarFallo(){
   aviso.className='aviso error';
-  aviso.innerHTML='No se pudo enviar. Presiona «Descargar PDF», guárdalo y envíalo por correo a <a href="mailto:'+CORREO_RESPALDO+'?subject='+encodeURIComponent('Diagnóstico de IA local · '+(estado['d-nombre']||''))+'">'+CORREO_RESPALDO+'</a>.';
+  aviso.innerHTML=(pdfListo?'Tu reporte se descargó, pero no se pudo enviar a exa. Envíalo por correo a ':'No se pudo enviar. Usa «Solo descargar PDF» y envía el archivo por correo a ')+'<a href="mailto:'+CORREO_RESPALDO+'?subject='+encodeURIComponent('Diagnóstico de IA local · '+(estado['d-nombre']||''))+'">'+CORREO_RESPALDO+'</a>.';
 }
 
 /* Enviar a exa: guarda el diagnóstico en Airtable a través de la función de Vercel */
 const API=/\.vercel\.app$/.test(location.hostname)?'/api/enviar':'https://sensei-learning.vercel.app/api/enviar';
 const btnEnviar=document.getElementById('enviar');
+const KEY_ENVIO='exa-diag-ia-envio';
+function claveEnvio(){
+  if(sesion) return 's-'+sesion;
+  let c=null;try{c=localStorage.getItem(KEY_ENVIO)}catch(e){}
+  if(!/^[a-z0-9]{20}$/.test(c||'')){const l='abcdefghijkmnpqrstuvwxyz23456789';c=Array.from(crypto.getRandomValues(new Uint8Array(20)),x=>l[x%32]).join('');try{localStorage.setItem(KEY_ENVIO,c)}catch(e){}}
+  return 'n-'+c;
+}
+const blobABase64=b=>new Promise((ok,mal)=>{const fr=new FileReader();fr.onload=()=>ok(String(fr.result).split(',')[1]);fr.onerror=mal;fr.readAsDataURL(b);});
 document.getElementById('enviar').addEventListener('click',async()=>{
   const r=calcular();
   const correo=document.getElementById('env-correo').value.trim();
@@ -732,24 +753,35 @@ document.getElementById('enviar').addEventListener('click',async()=>{
   if(r.resp===0){avisar('Responde al menos una pregunta antes de enviar.','error');return;}
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){avisar('Escribe un correo de contacto válido.','error');document.getElementById('env-correo').focus();return;}
   if(!document.getElementById('env-ok').checked){avisar('Marca la casilla de consentimiento para enviar.','error');return;}
+  btnEnviar.disabled=true;btnPdf.disabled=true;pdfListo=false;
+  // 1) Generar y descargar el PDF
+  avisar('Generando tu reporte…');
+  let pdfB64='', nombre=nombrePDF();
+  try{const blob=await generarPDF();descargar(blob,nombre);pdfListo=true;const b=await blobABase64(blob);if(b.length<4000000)pdfB64=b;}
+  catch(e){console.error(e);}
+  // 2) Enviarlo a exa
+  avisar(pdfListo?'Tu reporte se descargó. Enviándolo a exa…':'Enviando a exa…');
+  if(sesion&&pendiente) await guardarSesion();
   const datos={
     colegio:estado['d-nombre'],niveles:estado['d-niveles']||'',alumnos:estado['d-alumnos']||'',docentes:estado['d-docentes']||'',
     personas:estado['d-personas']||'',fecha:estado['d-fecha']||'',correo,consentimiento:true,
     trampa:document.getElementById('env-trampa').value,
     total:r.total,respondidas:r.resp,etapa:r.e.nombre,cuadrante:r.c.n,tecnica:r.pt,pedagogica:r.pp,
     prioridad:r.peor?`${r.peor.s.n} ${r.peor.s.titulo} (${r.peor.pct}%)`:'',
-    secciones:r.res.map(x=>x.sub),resumen:resumen(),respuestas:estado,sesion:sesion||''
+    secciones:r.res.map(x=>x.sub),resumen:resumen(),respuestas:estado,sesion:sesion||'',
+    clave:claveEnvio(),pdf:pdfB64,pdfNombre:nombre+'.pdf'
   };
-  btnEnviar.disabled=true;avisar('Enviando…');
-  if(sesion&&pendiente) await guardarSesion();
   try{
     const resp=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(datos)});
     const j=await resp.json().catch(()=>({}));
-    if(resp.ok&&j.ok){avisar('¡Listo! exa recibió el diagnóstico. Te escribiremos a '+correo+'.','ok');}
+    if(resp.ok&&j.ok){
+      const inicio=pdfListo?'¡Listo! Tu reporte se descargó y ':'¡Listo! ';
+      avisar(inicio+(j.actualizado?'actualizamos el que ya habías enviado a exa.':'exa lo recibió. Te escribiremos a '+correo+'.')+(pdfListo?'':' (No se pudo generar el PDF en este navegador.)'),'ok');
+    }
     else if(resp.status===400&&j.error) avisar(j.error,'error');
     else avisarFallo();
   }catch(e){avisarFallo();}
-  btnEnviar.disabled=false;
+  btnEnviar.disabled=false;btnPdf.disabled=false;
 });
 
 /* Descargar PDF: arma un reporte compacto y abre la ventana de impresión */
@@ -771,15 +803,41 @@ function prepararReporte(){
   }));
   document.getElementById('rep-ctx').innerHTML=ctx.length?`<h3 class="subtit">Contexto</h3><table class="rep-resp"><tbody>${ctx.join('')}</tbody></table>`:'';
 }
-const TITULO=document.title;
-document.getElementById('pdf').addEventListener('click',()=>{
+function nombrePDF(){
+  const c=String(estado['d-nombre']||'').replace(/[\/\\:*?"<>|#%{}~&]/g,' ').replace(/\s+/g,' ').trim().slice(0,80);
+  return c?'Dx IA Local - '+c:'Dx IA Local';
+}
+function cargarHtml2pdf(){
+  if(window.html2pdf) return Promise.resolve();
+  return new Promise((ok,mal)=>{const sc=document.createElement('script');sc.src='/vendor/html2pdf.bundle.min.js';sc.onload=ok;sc.onerror=()=>mal(new Error('No se pudo cargar el generador de PDF'));document.head.appendChild(sc);});
+}
+async function generarPDF(){
+  await cargarHtml2pdf();
+  if(document.fonts&&document.fonts.ready) await document.fonts.ready;
   prepararReporte();
-  const colegio=String(estado['d-nombre']||'').replace(/[\/\\:*?"<>|#%{}~&]/g,' ').replace(/\s+/g,' ').trim().slice(0,80);
-  document.title=colegio?'Dx IA Local - '+colegio:'Dx IA Local';
-  document.body.classList.add('reporte');
-  window.print();
+  const hoja=document.createElement('div');hoja.className='pdf-hoja';
+  hoja.appendChild(document.querySelector('.portada').cloneNode(true));
+  hoja.appendChild(document.getElementById('resultados').cloneNode(true));
+  hoja.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));
+  return html2pdf().set({
+    margin:[10,8,12,8],
+    image:{type:'jpeg',quality:0.9},
+    html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',windowWidth:800},
+    jsPDF:{unit:'mm',format:'letter',orientation:'portrait'},
+    pagebreak:{mode:['css'],avoid:['.res-top','.matriz-wrap','.sec-card','.secciones','.etapas-tabla tr','.rep-resp tr','.rep-datos','h3']}
+  }).from(hoja).outputPdf('blob');
+}
+function descargar(blob,nombre){
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nombre+'.pdf';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),60000);
+}
+const btnPdf=document.getElementById('pdf');
+btnPdf.addEventListener('click',async()=>{
+  btnPdf.disabled=true;btnEnviar.disabled=true;avisar('Generando tu reporte…');
+  try{descargar(await generarPDF(),nombrePDF());avisar('Tu reporte se descargó.');}
+  catch(e){console.error(e);avisar('No se pudo generar el PDF en este navegador. Intenta con Chrome o Safari actualizados.','error');}
+  btnPdf.disabled=false;btnEnviar.disabled=false;
 });
-window.addEventListener('afterprint',()=>{document.body.classList.remove('reporte');document.title=TITULO;});
 /* Trabajo en equipo: enlace compartido ?s=<código> guardado en Airtable a través de /api/sesion */
 const KEY_SESION='exa-diag-ia-sesion';
 const API_SESION=/\.vercel\.app$/.test(location.hostname)?'/api/sesion':'https://sensei-learning.vercel.app/api/sesion';
@@ -924,6 +982,7 @@ document.getElementById('borrar').addEventListener('click',ev=>{
   if(!confirmar){confirmar=true;ev.target.textContent='Confirmar: borrar todo';avisar('Vuelve a hacer clic para borrar todas las respuestas.');setTimeout(()=>{confirmar=false;ev.target.textContent='Borrar respuestas';},4000);return;}
   const compartida=!!sesion;
   if(compartida){salirDeSesion();elEstado.textContent='';}
+  try{localStorage.removeItem(KEY_ENVIO)}catch(e){}
   estado={};guardar();render();restaurar();calcular();confirmar=false;ev.target.textContent='Borrar respuestas';
   avisar(compartida?'Respuestas borradas en este navegador. El enlace compartido conserva las respuestas de tu equipo.':'Respuestas borradas.');
 });

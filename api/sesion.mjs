@@ -39,7 +39,8 @@ export async function marcarEnviada(codigo, diagnosticoId) {
   const s = await buscarSesion(codigo);
   if (!s) return;
   const fields = { 'Estado': 'Enviada', 'Actualizada': new Date().toISOString() };
-  if (diagnosticoId) fields['Diagnóstico'] = [...(s.fields['Diagnóstico'] || []), diagnosticoId];
+  const ligados = s.fields['Diagnóstico'] || [];
+  if (diagnosticoId && !ligados.includes(diagnosticoId)) fields['Diagnóstico'] = [...ligados, diagnosticoId];
   await at(`/${s.id}`, { method: 'PATCH', body: JSON.stringify({ fields }) });
 }
 
