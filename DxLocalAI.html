@@ -211,7 +211,9 @@ body.pasos:not([data-paso="inicio"]) .portada{display:none}
 .solo-pdf{margin:10px 0 0;font-size:13px;color:var(--gris-medio)}
 .enlace{font:inherit;font-size:13.5px;background:none;border:0;padding:0;color:var(--azul-medio);text-decoration:underline;cursor:pointer}
 .enlace:disabled{opacity:.55;cursor:wait}
-.pdf-hoja{width:760px;padding:0 24px 8px;background:#fff}
+.pdf-hoja{width:760px;padding:0 24px;background:#fff}
+.pdf-hoja .cifra-valor{background:none;-webkit-text-fill-color:var(--azul-exa);color:var(--azul-exa)}
+.pdf-hoja img.svg-img{width:100%;height:auto;display:block}
 .pdf-hoja .portada{display:block !important}
 .pdf-hoja .portada .lead,.pdf-hoja .portada .meta{display:none}
 .pdf-hoja .portada h1{font-size:40px;margin-top:20px}
@@ -818,14 +820,29 @@ async function generarPDF(){
   const hoja=document.createElement('div');hoja.className='pdf-hoja';
   hoja.appendChild(document.querySelector('.portada').cloneNode(true));
   hoja.appendChild(document.getElementById('resultados').cloneNode(true));
+  // El SVG de la matriz se convierte en imagen para que el PDF lo dibuje bien
+  const esperas=[];
+  hoja.querySelectorAll('svg').forEach(svg=>{
+    svg.setAttribute('xmlns','http://www.w3.org/2000/svg');
+    const vb=(svg.getAttribute('viewBox')||'0 0 520 440').split(/\s+/);svg.setAttribute('width',vb[2]);svg.setAttribute('height',vb[3]);
+    const img=new Image();img.className='svg-img';
+    img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(svg));
+    svg.replaceWith(img);esperas.push(img.decode().catch(()=>{}));
+  });
+  await Promise.all(esperas);
   hoja.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));
-  return html2pdf().set({
+  const trabajo=html2pdf().set({
     margin:[10,8,12,8],
-    image:{type:'jpeg',quality:0.9},
-    html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',windowWidth:800},
+    image:{type:'jpeg',quality:0.88},
+    html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0,windowWidth:808,x:0,y:0},
     jsPDF:{unit:'mm',format:'letter',orientation:'portrait'},
     pagebreak:{mode:['css'],avoid:['.res-top','.matriz-wrap','.sec-card','.secciones','.etapas-tabla tr','.rep-resp tr','.rep-datos','h3']}
-  }).from(hoja).outputPdf('blob');
+  }).from(hoja).toPdf();
+  const pdf=await trabajo.get('pdf'), lienzo=await trabajo.get('canvas');
+  // Quitar páginas finales vacías
+  const anchoUtil=215.9-16, altoUtil=279.4-22, paginas=Math.max(1,Math.ceil(lienzo.height/(lienzo.width*altoUtil/anchoUtil)-0.03));
+  while(pdf.getNumberOfPages()>paginas) pdf.deletePage(pdf.getNumberOfPages());
+  return pdf.output('blob');
 }
 function descargar(blob,nombre){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nombre+'.pdf';
