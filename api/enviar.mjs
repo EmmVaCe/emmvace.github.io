@@ -1,5 +1,6 @@
 // Recibe un diagnóstico de DxLocalAI y lo guarda en Airtable.
 // Variables de entorno en Vercel: AIRTABLE_TOKEN (obligatoria).
+import { marcarEnviada } from './sesion.mjs';
 const BASE = 'appxEkTzPxt0VGzMD';
 const TABLA = 'tblo5a4hb3rzQl1Wg';
 const ORIGENES = [
@@ -89,6 +90,9 @@ export async function POST(request) {
   const guardado = await r.json().catch(() => ({}));
   const id = guardado.records?.[0]?.id;
   try { await avisarTelegram(campos, id); } catch (e) { console.error('Telegram', e); }
+  if (typeof d.sesion === 'string' && d.sesion) {
+    try { await marcarEnviada(d.sesion, id); } catch (e) { console.error('Sesión', e); }
+  }
   return json({ ok: true }, 200, h);
 }
 

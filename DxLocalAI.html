@@ -181,6 +181,16 @@ footer .nota{color:var(--gris-medio)}
   .datos,.res-top,.matriz-wrap,.columnas{grid-template-columns:1fr}
   .preg{grid-template-columns:40px 1fr}.preg .nivel{grid-column:2;width:100%}
 }
+/* Trabajo en equipo (enlace compartido) */
+.equipo{margin-top:28px;border:1px solid var(--linea);border-left:4px solid var(--aqua-exa);border-radius:var(--radius-lg);padding:20px 22px;background:#fff}
+.equipo h3{font-size:19px;font-weight:600}
+.equipo .nota{margin:6px 0 0}
+.equipo-fila{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.equipo-fila[hidden]{display:none}
+#enlace-url{flex:1;min-width:240px;font-family:var(--font-mono);font-size:13px;color:var(--tinta);border:1px solid var(--linea);border-radius:var(--radius-md);padding:10px 12px;background:var(--gris-claro)}
+#equipo-estado{display:block;margin-top:10px;min-height:1em}
+.sync-nav{flex:none;font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--gris-medio);padding:6px 4px;white-space:nowrap}
+.sync-nav.error{color:#B42318}
 /* Enviar a exa y reporte PDF */
 .enviar{margin-top:28px;background:var(--gris-claro);border-radius:var(--radius-lg);padding:22px 24px}
 .enviar h3{font-size:20px;font-weight:600}
@@ -214,7 +224,7 @@ footer .nota{color:var(--gris-medio)}
   @page{margin:14mm}
 }
 @media print{
-  .nav,.acciones,.enviar{display:none}
+  .nav,.acciones,.enviar,.equipo{display:none}
   section.bloque{break-inside:avoid-page}
   .preg{break-inside:avoid}
   body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -248,6 +258,7 @@ footer .nota{color:var(--gris-medio)}
     <a href="#resultados">Resultados</a>
     <a href="#esenciales">Esenciales</a>
     <span class="avance" id="avance">0 / 36</span>
+    <span class="sync-nav" id="sync-nav" hidden></span>
   </div>
 </nav>
 
@@ -274,6 +285,20 @@ footer .nota{color:var(--gris-medio)}
       <label class="campo">Número de docentes<input type="number" min="0" data-k="d-docentes"></label>
       <label class="campo">Personas que responden y su cargo<input type="text" data-k="d-personas"></label>
       <label class="campo">Fecha<input type="date" data-k="d-fecha"></label>
+    </div>
+
+    <div class="equipo" id="equipo">
+      <h3>¿Lo llenan entre varias personas?</h3>
+      <p class="nota" id="equipo-desc">Crea un enlace y compártelo con dirección, coordinación o TI. Cada quien lo abre desde su equipo y continúa donde se quedó el anterior; los cambios se guardan solos.</p>
+      <div class="equipo-fila" id="equipo-crear">
+        <button class="btn sec" id="crear-enlace" type="button">Crear enlace para mi equipo</button>
+      </div>
+      <div class="equipo-fila" id="equipo-activo" hidden>
+        <input type="text" id="enlace-url" readonly aria-label="Enlace para compartir">
+        <button class="btn sec" id="compartir-enlace" type="button">Copiar enlace</button>
+      </div>
+      <p class="aviso" id="equipo-estado" role="status"></p>
+      <p class="nota">Al crear el enlace, las respuestas se guardan en exa conforme a su <a href="https://exa.s.gy/AvisoPrivacidad" target="_blank" rel="noopener">aviso de privacidad</a>. Cualquier persona con el enlace puede verlas y editarlas.</p>
     </div>
   </section>
 
@@ -371,7 +396,7 @@ footer .nota{color:var(--gris-medio)}
       <button class="btn sec" id="borrar" type="button">Borrar respuestas</button>
       <span class="aviso" id="aviso" role="status"></span>
     </div>
-    <p class="nota" style="margin-top:12px">Las respuestas se guardan en este navegador y solo se envían a exa si presionas «Enviar a exa» (consulta el <a href="https://exa.s.gy/AvisoPrivacidad" target="_blank" rel="noopener">aviso de privacidad</a>). Para el PDF, elige «Guardar como PDF» en la ventana de impresión.</p>
+    <p class="nota" style="margin-top:12px">Las respuestas se guardan en este navegador (y en exa, si creaste un enlace para tu equipo) y solo se envían como diagnóstico a exa si presionas «Enviar a exa» (consulta el <a href="https://exa.s.gy/AvisoPrivacidad" target="_blank" rel="noopener">aviso de privacidad</a>). Para el PDF, elige «Guardar como PDF» en la ventana de impresión.</p>
 
     <div class="solo-reporte">
       <h3 class="subtit">Respuestas por pregunta</h3>
@@ -530,7 +555,7 @@ const CUADRANTES = {
 const KEY='exa-diag-ia-v1';
 let estado={};
 try{estado=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){estado={}}
-function guardar(){try{localStorage.setItem(KEY,JSON.stringify(estado))}catch(e){}}
+function guardar(){try{localStorage.setItem(KEY,JSON.stringify(estado))}catch(e){} sesionCambio();}
 const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
 
 function render(){
@@ -700,9 +725,10 @@ document.getElementById('enviar').addEventListener('click',async()=>{
     trampa:document.getElementById('env-trampa').value,
     total:r.total,respondidas:r.resp,etapa:r.e.nombre,cuadrante:r.c.n,tecnica:r.pt,pedagogica:r.pp,
     prioridad:r.peor?`${r.peor.s.n} ${r.peor.s.titulo} (${r.peor.pct}%)`:'',
-    secciones:r.res.map(x=>x.sub),resumen:resumen(),respuestas:estado
+    secciones:r.res.map(x=>x.sub),resumen:resumen(),respuestas:estado,sesion:sesion||''
   };
   btnEnviar.disabled=true;avisar('Enviando…');
+  if(sesion&&pendiente) await guardarSesion();
   try{
     const resp=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(datos)});
     const j=await resp.json().catch(()=>({}));
@@ -740,10 +766,121 @@ document.getElementById('pdf').addEventListener('click',()=>{
   window.print();
 });
 window.addEventListener('afterprint',()=>{document.body.classList.remove('reporte');document.title=TITULO;});
+/* Trabajo en equipo: enlace compartido ?s=<código> guardado en Airtable a través de /api/sesion */
+const KEY_SESION='exa-diag-ia-sesion';
+const API_SESION=/\.vercel\.app$/.test(location.hostname)?'/api/sesion':'https://sensei-learning.vercel.app/api/sesion';
+var sesion=null, pendiente=false, temporizador=null, guardando=false, aplicando=false;
+const elEstado=document.getElementById('equipo-estado'), elNav=document.getElementById('sync-nav');
+const elDesc=document.getElementById('equipo-desc'), DESC_ORIGINAL=elDesc.textContent;
+const hora=()=>new Date().toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit'});
+const enlaceDe=c=>location.origin+location.pathname+'?s='+c;
+function estadoSync(t,error){
+  elEstado.textContent=t;elEstado.className='aviso'+(error?' error':'');
+  elNav.hidden=!sesion;elNav.className='sync-nav'+(error?' error':'');
+  elNav.textContent=error?'● Sin guardar':(/^Guardando|^Cambios/.test(t)?'● Guardando…':'● Compartido · guardado');
+}
+function mostrarSesion(){
+  const on=!!sesion, u=new URL(location.href);
+  document.getElementById('equipo-crear').hidden=on;
+  document.getElementById('equipo-activo').hidden=!on;
+  if(on){
+    document.getElementById('enlace-url').value=enlaceDe(sesion);
+    elDesc.textContent='Este diagnóstico está compartido. Envía el enlace a quien deba continuarlo; los cambios de todos se guardan en el mismo lugar.';
+    if(u.searchParams.get('s')!==sesion){u.searchParams.set('s',sesion);history.replaceState(null,'',u);}
+  }else{
+    elDesc.textContent=DESC_ORIGINAL;elNav.hidden=true;
+    if(u.searchParams.has('s')){u.searchParams.delete('s');history.replaceState(null,'',u);}
+  }
+}
+function sesionCambio(){
+  if(!sesion||aplicando) return;
+  pendiente=true;estadoSync('Cambios sin guardar…');
+  clearTimeout(temporizador);temporizador=setTimeout(guardarSesion,4000);
+}
+async function guardarSesion(){
+  if(!sesion||!pendiente) return;
+  if(guardando){clearTimeout(temporizador);temporizador=setTimeout(guardarSesion,1500);return;}
+  guardando=true;pendiente=false;clearTimeout(temporizador);estadoSync('Guardando…');
+  try{
+    const r=await fetch(API_SESION,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accion:'guardar',codigo:sesion,estado})});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok&&j.ok) estadoSync('Guardado a las '+hora()+'.');
+    else{pendiente=true;estadoSync(j.error||'No se pudo guardar; lo intentaremos de nuevo.',true);if(r.status!==404)temporizador=setTimeout(guardarSesion,15000);}
+  }catch(e){pendiente=true;estadoSync('Sin conexión. Tus cambios siguen en este navegador; lo intentaremos de nuevo.',true);temporizador=setTimeout(guardarSesion,15000);}
+  guardando=false;
+}
+function aplicarEstado(nuevo){
+  aplicando=true;estado=nuevo||{};
+  try{localStorage.setItem(KEY,JSON.stringify(estado))}catch(e){}
+  render();restaurar();calcular();aplicando=false;
+}
+function salirDeSesion(){sesion=null;pendiente=false;clearTimeout(temporizador);try{localStorage.removeItem(KEY_SESION)}catch(e){}mostrarSesion();}
+async function cargarSesion(c,alAbrir){
+  try{
+    const r=await fetch(API_SESION+'?s='+encodeURIComponent(c),{cache:'no-store'});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok||!j.ok){
+      if(alAbrir&&(r.status===404||r.status===400)){salirDeSesion();estadoSync(j.error||'Este enlace no existe.',true);elNav.hidden=true;}
+      else estadoSync(j.error||'No se pudo abrir el enlace.',true);
+      return false;
+    }
+    const remoto=j.estado||{}, distinto=JSON.stringify(estado)!==JSON.stringify(remoto);
+    if(alAbrir&&distinto&&Object.keys(estado).length&&localStorage.getItem(KEY_SESION)!==c){
+      if(!confirm('Este enlace contiene el diagnóstico compartido de tu equipo. ¿Reemplazar las respuestas que tenías en este navegador?')){
+        salirDeSesion();estadoSync('Conservaste tus respuestas. Para unirte al diagnóstico de tu equipo, vuelve a abrir su enlace.');elNav.hidden=true;return false;
+      }
+    }
+    sesion=c;try{localStorage.setItem(KEY_SESION,c)}catch(e){}
+    if(distinto) aplicarEstado(remoto);
+    mostrarSesion();
+    estadoSync(j.enviada?'Este diagnóstico ya se envió a exa; los cambios se siguen guardando.':'Al día · '+hora()+'.');
+    return true;
+  }catch(e){estadoSync('No se pudo conectar para abrir el enlace compartido.',true);return false;}
+}
+const btnCrear=document.getElementById('crear-enlace'), btnCompartir=document.getElementById('compartir-enlace');
+if(navigator.share) btnCompartir.textContent='Compartir enlace';
+btnCrear.addEventListener('click',async()=>{
+  btnCrear.disabled=true;estadoSync('Creando enlace…');
+  try{
+    const r=await fetch(API_SESION,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accion:'crear',estado})});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok&&j.ok){sesion=j.codigo;try{localStorage.setItem(KEY_SESION,sesion)}catch(e){}mostrarSesion();estadoSync('Enlace listo. Compártelo con tu equipo.');}
+    else estadoSync(j.error||'No se pudo crear el enlace. Intenta de nuevo.',true);
+  }catch(e){estadoSync('No se pudo crear el enlace. Revisa tu conexión.',true);}
+  btnCrear.disabled=false;
+});
+btnCompartir.addEventListener('click',async()=>{
+  const url=enlaceDe(sesion);
+  if(navigator.share){
+    try{await navigator.share({title:'Diagnóstico de IA local'+(estado['d-nombre']?' · '+estado['d-nombre']:''),text:'Te comparto nuestro diagnóstico de IA local de exa para que continúes llenándolo:',url});return;}
+    catch(e){if(e.name==='AbortError')return;}
+  }
+  try{await navigator.clipboard.writeText(url);estadoSync('Enlace copiado. Pégalo en un correo o mensaje para tu equipo.');}
+  catch(e){const i=document.getElementById('enlace-url');i.focus();i.select();estadoSync('Copia el enlace seleccionado (Cmd+C o Ctrl+C).');}
+});
+function guardarAlSalir(){
+  if(!sesion||!pendiente) return;
+  clearTimeout(temporizador);pendiente=false;
+  try{navigator.sendBeacon(API_SESION,new Blob([JSON.stringify({accion:'guardar',codigo:sesion,estado})],{type:'text/plain'}));}catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{
+  if(!sesion) return;
+  if(document.visibilityState==='hidden') guardarAlSalir();
+  else if(!pendiente&&!guardando) cargarSesion(sesion,false);
+});
+window.addEventListener('pagehide',guardarAlSalir);
+(function(){
+  const s=new URLSearchParams(location.search).get('s')||(()=>{try{return localStorage.getItem(KEY_SESION)}catch(e){return null}})();
+  if(s) cargarSesion(s,true);
+})();
+
 let confirmar=false;
 document.getElementById('borrar').addEventListener('click',ev=>{
   if(!confirmar){confirmar=true;ev.target.textContent='Confirmar: borrar todo';avisar('Vuelve a hacer clic para borrar todas las respuestas.');setTimeout(()=>{confirmar=false;ev.target.textContent='Borrar respuestas';},4000);return;}
-  estado={};guardar();render();restaurar();calcular();confirmar=false;ev.target.textContent='Borrar respuestas';avisar('Respuestas borradas.');
+  const compartida=!!sesion;
+  if(compartida){salirDeSesion();elEstado.textContent='';}
+  estado={};guardar();render();restaurar();calcular();confirmar=false;ev.target.textContent='Borrar respuestas';
+  avisar(compartida?'Respuestas borradas en este navegador. El enlace compartido conserva las respuestas de tu equipo.':'Respuestas borradas.');
 });
 </script>
 </body>
