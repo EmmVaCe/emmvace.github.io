@@ -368,7 +368,6 @@ footer .nota{color:var(--gris-medio)}
     <div class="acciones">
       <button class="btn" id="enviar" type="button">Enviar a exa</button>
       <button class="btn sec" id="pdf" type="button">Descargar PDF</button>
-      <button class="btn sec" id="copiar" type="button">Copiar resumen</button>
       <button class="btn sec" id="borrar" type="button">Borrar respuestas</button>
       <span class="aviso" id="aviso" role="status"></span>
     </div>
@@ -679,10 +678,11 @@ document.addEventListener('input',ev=>{
 });
 const aviso=document.getElementById('aviso');
 function avisar(t,tipo){aviso.textContent=t;aviso.className='aviso'+(tipo?' '+tipo:'');}
-document.getElementById('copiar').addEventListener('click',async()=>{
-  try{await navigator.clipboard.writeText(resumen());avisar('Resumen copiado.');}
-  catch(e){avisar('No se pudo copiar automáticamente en este navegador.','error');}
-});
+const CORREO_RESPALDO='aplspecialist@exa.com.mx';
+function avisarFallo(){
+  aviso.className='aviso error';
+  aviso.innerHTML='No se pudo enviar. Presiona «Descargar PDF», guárdalo y envíalo por correo a <a href="mailto:'+CORREO_RESPALDO+'?subject='+encodeURIComponent('Diagnóstico de IA local · '+(estado['d-nombre']||''))+'">'+CORREO_RESPALDO+'</a>.';
+}
 
 /* Enviar a exa: guarda el diagnóstico en Airtable a través de la función de Vercel */
 const API=/\.vercel\.app$/.test(location.hostname)?'/api/enviar':'https://sensei-learning.vercel.app/api/enviar';
@@ -707,8 +707,9 @@ document.getElementById('enviar').addEventListener('click',async()=>{
     const resp=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(datos)});
     const j=await resp.json().catch(()=>({}));
     if(resp.ok&&j.ok){avisar('¡Listo! exa recibió el diagnóstico. Te escribiremos a '+correo+'.','ok');}
-    else avisar(j.error||'No se pudo enviar. Intenta de nuevo en unos minutos.','error');
-  }catch(e){avisar('No se pudo enviar. Revisa tu conexión e intenta de nuevo.','error');}
+    else if(resp.status===400&&j.error) avisar(j.error,'error');
+    else avisarFallo();
+  }catch(e){avisarFallo();}
   btnEnviar.disabled=false;
 });
 
