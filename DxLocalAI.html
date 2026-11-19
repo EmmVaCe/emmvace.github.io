@@ -804,7 +804,7 @@ async function guardarSesion(){
   try{
     const r=await fetch(API_SESION,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accion:'guardar',codigo:sesion,estado})});
     const j=await r.json().catch(()=>({}));
-    if(r.ok&&j.ok) estadoSync('Guardado a las '+hora()+'.');
+    if(r.ok&&j.ok) estadoSync('Guardado a las '+hora());
     else{pendiente=true;estadoSync(j.error||'No se pudo guardar; lo intentaremos de nuevo.',true);if(r.status!==404)temporizador=setTimeout(guardarSesion,15000);}
   }catch(e){pendiente=true;estadoSync('Sin conexión. Tus cambios siguen en este navegador; lo intentaremos de nuevo.',true);temporizador=setTimeout(guardarSesion,15000);}
   guardando=false;
@@ -833,7 +833,7 @@ async function cargarSesion(c,alAbrir){
     sesion=c;try{localStorage.setItem(KEY_SESION,c)}catch(e){}
     if(distinto) aplicarEstado(remoto);
     mostrarSesion();
-    estadoSync(j.enviada?'Este diagnóstico ya se envió a exa; los cambios se siguen guardando.':'Al día · '+hora()+'.');
+    estadoSync(j.enviada?'Este diagnóstico ya se envió a exa; los cambios se siguen guardando.':'Al día · '+hora());
     return true;
   }catch(e){estadoSync('No se pudo conectar para abrir el enlace compartido.',true);return false;}
 }
