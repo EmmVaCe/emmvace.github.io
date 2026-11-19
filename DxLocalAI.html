@@ -181,6 +181,22 @@ footer .nota{color:var(--gris-medio)}
   .datos,.res-top,.matriz-wrap,.columnas{grid-template-columns:1fr}
   .preg{grid-template-columns:40px 1fr}.preg .nivel{grid-column:2;width:100%}
 }
+/* Navegación paso a paso */
+.basado{margin-top:24px;border-left:3px solid var(--azul-medio);padding:4px 0 4px 18px}
+.basado .etq{font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gris-medio);margin:0}
+.basado ul{margin:8px 0 0;padding-left:18px;font-size:14px}
+.basado li{margin:4px 0}
+body.pasos #inicio, body.pasos #secciones > section.bloque, body.pasos #resultados, body.pasos #esenciales{display:none}
+body[data-paso="inicio"] #inicio, body[data-paso="s1"] #s1, body[data-paso="s2"] #s2, body[data-paso="s3"] #s3,
+body[data-paso="s4"] #s4, body[data-paso="s5"] #s5, body[data-paso="s6"] #s6,
+body[data-paso="resultados"] #resultados, body[data-paso="esenciales"] #esenciales{display:block}
+body.pasos:not([data-paso="inicio"]) .portada{display:none}
+.nav a.activo{background:var(--azul-exa);color:#fff}
+.pasos-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:48px 0 0;padding-top:24px;border-top:1px solid var(--linea)}
+.pasos-nav[hidden]{display:none}
+.pasos-nav .btn[hidden]{visibility:hidden;display:inline-block}
+.paso-num{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gris-medio);text-align:center}
+@media print{ body.reporte #resultados{display:block !important} .pasos-nav{display:none !important} }
 /* Trabajo en equipo (enlace compartido) */
 .equipo{margin-top:28px;border:1px solid var(--linea);border-left:4px solid var(--aqua-exa);border-radius:var(--radius-lg);padding:20px 22px;background:#fff}
 .equipo h3{font-size:19px;font-weight:600}
@@ -249,6 +265,7 @@ footer .nota{color:var(--gris-medio)}
 <nav class="nav" aria-label="Secciones">
   <div class="wrap">
     
+    <a href="#inicio">00 Inicio</a>
     <a href="#s1">01 Visión</a>
     <a href="#s2">02 Datos y costo</a>
     <a href="#s3">03 Técnica</a>
@@ -270,11 +287,12 @@ footer .nota{color:var(--gris-medio)}
     <p class="cuerpo-lg">Las respuestas nos dan a <strong>exa</strong> un diagnóstico de qué tan listo está tu colegio para implementar IA local. Mientras responden, cada sección les explica <strong>por qué importa</strong>, para que tengan claro lo esencial aunque todavía no sepan la respuesta. Responder con honestidad vale más que responder «bien».</p>
     <p class="cuerpo-lg">Lo ideal es responder en equipo: dirección, coordinación académica, responsable de TI y uno o dos docentes. Cada pregunta indica quién conoce mejor la respuesta. Los resultados se calculan solos al final.</p>
 
-    <div class="escala" aria-label="Escala de respuesta">
-      <div><div class="n">0</div><p>No existe o no lo hemos considerado.</p></div>
-      <div><div class="n">1</div><p>Lo hemos platicado, pero no hay nada formal.</p></div>
-      <div><div class="n">2</div><p>Existe de forma parcial o en algunos grupos.</p></div>
-      <div><div class="n">3</div><p>Existe, está documentado y se aplica en todo el colegio.</p></div>
+    <div class="basado">
+      <p class="etq">Basado en</p>
+      <ul>
+        <li><a href="https://sensei.box.com/s/62zm3dq0u8quzg525gkojps59mq3vs6d" target="_blank" rel="noopener">Innovation in the Age of AI</a>, Bebell, Burt y Puentedura (noviembre 2026): 8,035 docentes de 267 Apple Distinguished Schools en 27 países. <a href="https://reflectiveeducationalresearch.com/innovation-in-the-age-of-ai/" target="_blank" rel="noopener">Ver el informe en línea</a>.</li>
+        <li><a href="https://sensei.box.com/s/aeszi2ta1ju7lk2xbgn0jc7ruk8mc5ry" target="_blank" rel="noopener">Local AI Architecture for Mac: Activity Guide</a>, Apple (macOS 26).</li>
+      </ul>
     </div>
 
     <h3 class="subtit">Datos generales del colegio</h3>
@@ -434,16 +452,11 @@ footer .nota{color:var(--gris-medio)}
     </div>
   </section>
 
-  <section class="bloque" id="fuentes">
-    <p class="etiqueta"><b>09</b> / Fuentes</p>
-    <h2 class="titulo-seccion" style="font-size:28px">De dónde viene este cuestionario</h2>
-    <ul class="fuentes cuerpo-lg">
-      <li><a href="https://sensei.box.com/s/62zm3dq0u8quzg525gkojps59mq3vs6d">Innovation in the Age of AI</a>, Bebell, Burt y Puentedura (noviembre 2026): 8,035 docentes de 267 Apple Distinguished Schools en 27 países. <a href="https://reflectiveeducationalresearch.com/innovation-in-the-age-of-ai/" target="_blank" rel="noopener">Ver el informe en línea</a>.</li>
-      <li><a href="https://sensei.box.com/s/aeszi2ta1ju7lk2xbgn0jc7ruk8mc5ry">Local AI Architecture for Mac: Activity Guide</a>, Apple (macOS 26).</li>
-      <li><a href="https://sensei.box.com/s/i5x5xo8difdabvlmzk8nh53haczbam41">On-Device Channel Sales Guide</a> (julio 2026) y <a href="https://sensei.box.com/s/fznnlxfwztj87rnfahz9qcbw737wg02p">AI Conversation Guide for Industries</a>, Apple.</li>
-      <li>Presentaciones <a href="https://sensei.box.com/s/bd9tmhlorfoqwr6zl9r5b3ix5zjk2vv6">AI and Apple Intelligence at Work</a> y <a href="https://sensei.box.com/s/8uxbkpg8ucarzv5c6g4d4h1eeph1nyg4">What’s New for IT — WWDC26</a>.</li>
-    </ul>
-  </section>
+  <div class="pasos-nav" id="pasos-nav" hidden>
+    <button class="btn sec" id="paso-ant" type="button">← Anterior</button>
+    <span class="paso-num" id="paso-num"></span>
+    <button class="btn" id="paso-sig" type="button">Siguiente →</button>
+  </div>
 </main>
 
 <footer>
@@ -715,7 +728,7 @@ const btnEnviar=document.getElementById('enviar');
 document.getElementById('enviar').addEventListener('click',async()=>{
   const r=calcular();
   const correo=document.getElementById('env-correo').value.trim();
-  if(!(estado['d-nombre']||'').trim()){avisar('Escribe el nombre del colegio en «Datos generales» (sección 00).','error');document.querySelector('[data-k="d-nombre"]').focus();return;}
+  if(!(estado['d-nombre']||'').trim()){aviso.className='aviso error';aviso.innerHTML='Falta el nombre del colegio. <a href="#inicio">Escríbelo en el paso 00</a>.';return;}
   if(r.resp===0){avisar('Responde al menos una pregunta antes de enviar.','error');return;}
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){avisar('Escribe un correo de contacto válido.','error');document.getElementById('env-correo').focus();return;}
   if(!document.getElementById('env-ok').checked){avisar('Marca la casilla de consentimiento para enviar.','error');return;}
@@ -873,6 +886,37 @@ window.addEventListener('pagehide',guardarAlSalir);
 (function(){
   const s=new URLSearchParams(location.search).get('s')||(()=>{try{return localStorage.getItem(KEY_SESION)}catch(e){return null}})();
   if(s) cargarSesion(s,true);
+})();
+
+/* Navegación paso a paso: una sección por página */
+const PASOS=['inicio','s1','s2','s3','s4','s5','s6','resultados','esenciales'];
+const NOMBRES={inicio:'Inicio',s1:'Visión',s2:'Datos y costo',s3:'Técnica',s4:'Operación',s5:'Pedagogía',s6:'Formación',resultados:'Resultados',esenciales:'Puntos esenciales'};
+const KEY_PASO='exa-diag-ia-paso';
+const btnAnt=document.getElementById('paso-ant'), btnSig=document.getElementById('paso-sig');
+function irAPaso(id,opc={}){
+  if(!PASOS.includes(id)) id='inicio';
+  const i=PASOS.indexOf(id);
+  document.body.dataset.paso=id;
+  document.querySelectorAll('.nav a[href^="#"]').forEach(a=>a.classList.toggle('activo',a.getAttribute('href')==='#'+id));
+  const activo=document.querySelector('.nav a.activo'); if(activo) activo.scrollIntoView({block:'nearest',inline:'center'});
+  btnAnt.hidden=i===0;
+  btnSig.hidden=i===PASOS.length-1;
+  if(i<PASOS.length-1){const sig=PASOS[i+1];btnSig.textContent=(sig==='resultados'?'Ver resultados':'Siguiente: '+NOMBRES[sig])+' →';}
+  document.getElementById('paso-num').textContent='Paso '+i+' de '+(PASOS.length-1);
+  try{localStorage.setItem(KEY_PASO,id)}catch(e){}
+  if(location.hash!=='#'+id){const u=new URL(location.href);u.hash=id;if(opc.reemplazar)history.replaceState(null,'',u);else history.pushState(null,'',u);}
+  if(opc.desplazar!==false) window.scrollTo(0,0);
+}
+btnAnt.addEventListener('click',()=>irAPaso(PASOS[PASOS.indexOf(document.body.dataset.paso)-1]));
+btnSig.addEventListener('click',()=>irAPaso(PASOS[PASOS.indexOf(document.body.dataset.paso)+1]));
+window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(PASOS.includes(id)&&id!==document.body.dataset.paso) irAPaso(id,{reemplazar:true});});
+window.addEventListener('popstate',()=>{const id=location.hash.slice(1);if(PASOS.includes(id)) irAPaso(id,{reemplazar:true});});
+(function(){
+  document.body.classList.add('pasos');
+  document.getElementById('pasos-nav').hidden=false;
+  const h=location.hash.slice(1);
+  let guardado=null;try{guardado=localStorage.getItem(KEY_PASO)}catch(e){}
+  irAPaso(PASOS.includes(h)?h:(PASOS.includes(guardado)?guardado:'inicio'),{reemplazar:true,desplazar:false});
 })();
 
 let confirmar=false;
