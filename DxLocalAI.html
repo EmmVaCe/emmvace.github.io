@@ -186,7 +186,7 @@ footer .nota{color:var(--gris-medio)}
 .basado .etq{font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gris-medio);margin:0}
 .basado ul{margin:8px 0 0;padding-left:18px;font-size:14px}
 .basado li{margin:4px 0}
-body.pasos #inicio, body.pasos #secciones > section.bloque, body.pasos #resultados, body.pasos #esenciales{display:none}
+body.pasos :where(#inicio, #secciones > section.bloque, #resultados, #esenciales){display:none}
 body[data-paso="inicio"] #inicio, body[data-paso="s1"] #s1, body[data-paso="s2"] #s2, body[data-paso="s3"] #s3,
 body[data-paso="s4"] #s4, body[data-paso="s5"] #s5, body[data-paso="s6"] #s6,
 body[data-paso="resultados"] #resultados, body[data-paso="esenciales"] #esenciales{display:block}
