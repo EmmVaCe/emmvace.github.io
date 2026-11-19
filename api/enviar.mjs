@@ -86,5 +86,34 @@ export async function POST(request) {
     console.error('Airtable', r.status, await r.text());
     return json({ ok: false, error: 'No se pudo guardar. Intenta de nuevo en unos minutos.' }, 502, h);
   }
+  const guardado = await r.json().catch(() => ({}));
+  const id = guardado.records?.[0]?.id;
+  try { await avisarTelegram(campos, id); } catch (e) { console.error('Telegram', e); }
   return json({ ok: true }, 200, h);
+}
+
+// Aviso al grupo de Telegram. Variables: TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID (si faltan, no se envía).
+const html = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+async function avisarTelegram(c, id) {
+  const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chat) return;
+  const enlace = id ? `https://airtable.com/${BASE}/${TABLA}/${id}` : `https://airtable.com/${BASE}/${TABLA}`;
+  const lineas = [
+    `🏫 <b>Nuevo diagnóstico de IA local</b>`,
+    `<b>${html(c['Colegio'])}</b>`,
+    '',
+    `• <b>Puntaje:</b> ${c['Puntaje total'] ?? '–'} / 108 (${c['Preguntas respondidas']} de 36 preguntas)`,
+    `• <b>Etapa:</b> ${html(c['Etapa'] || '–')}`,
+    `• <b>Cuadrante:</b> ${html(c['Cuadrante'] || '–')}`,
+    `• <b>Primera prioridad:</b> ${html(c['Primera prioridad'] || '–')}`,
+    `• <b>Contacto:</b> ${html(c['Correo de contacto'])}`,
+  ];
+  if (c['Personas que responden']) lineas.push(`• <b>Responden:</b> ${html(c['Personas que responden'])}`);
+  lineas.push('', `<a href="${enlace}">Ver en Airtable</a>`);
+  const t = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: chat, text: lineas.join('\n'), parse_mode: 'HTML', disable_web_page_preview: true }),
+  });
+  if (!t.ok) console.error('Telegram', t.status, await t.text());
 }
